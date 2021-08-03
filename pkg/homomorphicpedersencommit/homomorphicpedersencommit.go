@@ -1,9 +1,9 @@
 package homomorphicpedersencommit
 
 import (
-	"github.com/QED-it/go-jubjub/pkg/grouphash"
-	"github.com/QED-it/go-jubjub/pkg/jubjub"
-	"github.com/QED-it/go-jubjub/pkg/pedersenhash"
+	"github.com/jadeydi/jubjub/pkg/grouphash"
+	"github.com/jadeydi/jubjub/pkg/jubjub"
+	"github.com/jadeydi/jubjub/pkg/pedersenhash"
 	"math/big"
 )
 

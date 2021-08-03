@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/QED-it/go-jubjub/pkg/homomorphicpedersencommit"
+	"github.com/jadeydi/jubjub/pkg/homomorphicpedersencommit"
 	"math/big"
 )
 

@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/QED-it/go-jubjub/pkg/blake2s"
-	"github.com/QED-it/go-jubjub/pkg/pedersenhash"
+	"github.com/jadeydi/jubjub/pkg/blake2s"
+	"github.com/jadeydi/jubjub/pkg/pedersenhash"
 )
 
 func main() {

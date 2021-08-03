@@ -2,8 +2,8 @@ package pedersenhash
 
 import (
 	"encoding/binary"
-	"github.com/QED-it/go-jubjub/pkg/grouphash"
-	"github.com/QED-it/go-jubjub/pkg/jubjub"
+	"github.com/jadeydi/jubjub/pkg/grouphash"
+	"github.com/jadeydi/jubjub/pkg/jubjub"
 	"math/big"
 )
 

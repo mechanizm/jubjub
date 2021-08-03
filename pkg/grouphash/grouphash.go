@@ -2,8 +2,8 @@ package grouphash
 
 import (
 	"fmt"
-	"github.com/QED-it/go-jubjub/pkg/blake2s"
-	"github.com/QED-it/go-jubjub/pkg/jubjub"
+	"github.com/jadeydi/jubjub/pkg/blake2s"
+	"github.com/jadeydi/jubjub/pkg/jubjub"
 	"math/big"
 )
 
