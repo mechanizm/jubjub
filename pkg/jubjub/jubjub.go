@@ -2,10 +2,10 @@ package jubjub
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"math/big"
-)
 
+	"github.com/pkg/errors"
+)
 
 type Jubjub struct {
 	// jubjub is defined over this field
@@ -21,8 +21,8 @@ type Jubjub struct {
 
 type JubjubPoint struct {
 	curve *Jubjub
-	x *big.Int
-	y *big.Int
+	x     *big.Int
+	y     *big.Int
 }
 
 func NewJubjub() *Jubjub {
@@ -40,9 +40,9 @@ func NewJubjub() *Jubjub {
 	d.Mul(big.NewInt(-10240), dDenomInverse).Mod(d, blsR)
 
 	jubjub := &Jubjub{
-		BlsR:blsR,
-		JubjubS:jubjubS,
-		D: d,
+		BlsR:     blsR,
+		JubjubS:  jubjubS,
+		D:        d,
 		Cofactor: big.NewInt(8),
 	}
 	return jubjub
@@ -99,8 +99,8 @@ func (curve *Jubjub) MulByCofactor(point *JubjubPoint) (*JubjubPoint, error) {
 func (curve *Jubjub) Point(x *big.Int, y *big.Int) (*JubjubPoint, error) {
 	point := &JubjubPoint{
 		curve: curve,
-		x:x,
-		y:y,
+		x:     x,
+		y:     y,
 	}
 
 	err := point.VerifyOnCurve()
@@ -147,8 +147,8 @@ func (curve *Jubjub) GetForY(y *big.Int, shouldBeOdd bool) (*JubjubPoint, error)
 
 	point := &JubjubPoint{
 		curve: curve,
-		x:rhs,
-		y:y,
+		x:     rhs,
+		y:     y,
 	}
 
 	err := point.VerifyOnCurve()
@@ -223,11 +223,11 @@ func (point *JubjubPoint) Clone() (*JubjubPoint, error) {
 	return point.curve.Point(point.x, point.y)
 }
 
-func (point *JubjubPoint) X() (*big.Int) {
+func (point *JubjubPoint) X() *big.Int {
 	return big.NewInt(0).Set(point.x)
 }
 
-func (point *JubjubPoint) Y() (*big.Int) {
+func (point *JubjubPoint) Y() *big.Int {
 	return big.NewInt(0).Set(point.y)
 }
 
@@ -238,12 +238,12 @@ func (curve *Jubjub) Neg(p *JubjubPoint) (*JubjubPoint, error) {
 	return curve.Point(x, p.Y())
 }
 
-func (curve *Jubjub) ScalarMult(scalar *big.Int, point *JubjubPoint) (*JubjubPoint, error){
+func (curve *Jubjub) ScalarMult(scalar *big.Int, point *JubjubPoint) (*JubjubPoint, error) {
 	retPoint, err := curve.Point(big.NewInt(0), big.NewInt(1))
 	if err != nil {
 		return nil, err
 	}
-	for i := scalar.BitLen()-1; i >= 0; i-- {
+	for i := scalar.BitLen() - 1; i >= 0; i-- {
 		if scalar.Bit(i) == 1 {
 			retPoint, err = curve.Add(retPoint, point)
 			if err != nil {

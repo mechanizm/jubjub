@@ -2,9 +2,10 @@ package grouphash
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/jadeydi/jubjub/pkg/blake2s"
 	"github.com/jadeydi/jubjub/pkg/jubjub"
-	"math/big"
 )
 
 var (
@@ -25,11 +26,10 @@ func NewGroupHasher(domain []byte) (*GroupHasher, error) {
 	j := jubjub.NewJubjub()
 
 	return &GroupHasher{
-		curve: j,
+		curve:  j,
 		domain: domain,
 	}, nil
 }
-
 
 func reverse(numbers []byte) {
 	for i, j := 0, len(numbers)-1; i < j; i, j = i+1, j-1 {
@@ -37,12 +37,10 @@ func reverse(numbers []byte) {
 	}
 }
 
-func (hasher *GroupHasher) FindGroupHash(msg []byte) (*jubjub.JubjubPoint, error){
+func (hasher *GroupHasher) FindGroupHash(msg []byte) (*jubjub.JubjubPoint, error) {
 	for i := uint8(0); i <= 255; i++ {
 		msgWithIndex := append(msg, i)
-		//fmt.Printf("msg: %x\n", msgWithIndex)
 		p, err := hasher.Hash(msgWithIndex)
-		//fmt.Printf("p: %v\n", p)
 		if err == ErrInvalidPoint {
 			continue
 		}
@@ -51,7 +49,7 @@ func (hasher *GroupHasher) FindGroupHash(msg []byte) (*jubjub.JubjubPoint, error
 	return nil, fmt.Errorf("could not find a valid point")
 }
 
-func (hasher *GroupHasher) Hash(msg []byte) (*jubjub.JubjubPoint, error){
+func (hasher *GroupHasher) Hash(msg []byte) (*jubjub.JubjubPoint, error) {
 	blake, err := blake2s.New256WithPersonalization(nil, hasher.domain)
 	if err != nil {
 		return nil, err
