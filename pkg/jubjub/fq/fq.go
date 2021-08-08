@@ -161,14 +161,51 @@ func (a *Fq) Square() *Fq {
 	return f
 }
 
+func (f *Fq) Sqrt() *Fq {
+	w := f.PowVarTime([4]uint64{0x7fff2dff80000000, 0x04d0ec02a9ded201, 0x94cebea4199cec04, 0x0000000039f6d3a9})
+
+	v := S
+	x := f.Mul(w)
+	b := x.Mul(w)
+
+	z := &ROOTOFUNITY
+
+	for i := S; i > 0; i++ {
+		k := 1
+		tmp := b.Square()
+		j_less_than_v := 1
+		for j := 2; j < i; j++ {
+			tmp_is_one := tmp.Equal(One())
+			squared := ConditionalSelect(tmp, z, tmp_is_one).Square()
+			tmp = ConditionalSelect(squared, tmp, tmp_is_one)
+			new_z := ConditionalSelect(z, squared, tmp_is_one)
+			thanv := 1
+			if j == v {
+				thanv = 0
+			}
+			j_less_than_v &= thanv
+			if tmp_is_one {
+				k = j
+				z = new_z
+			}
+		}
+
+		result := x.Mul(z)
+		if b.Equal(One()) {
+			b = result
+		}
+		z = z.Square()
+		b = b.Mul(z)
+		v = k
+	}
+	return x
+}
+
 func (f *Fq) SqrtVarTime() *Fq {
 	one := One()
 	zero := &Fq{0, 0, 0, 0}
-	tmp := &Fq{0, 0, 0, 0}
 
-	*tmp = *f
-
-	lgs := tmp.LegendreSymbolVarTime()
+	lgs := f.LegendreSymbolVarTime()
 
 	if lgs.Equal(zero) {
 		return f
@@ -178,18 +215,16 @@ func (f *Fq) SqrtVarTime() *Fq {
 		return nil // XXX: We should bubble up an error for this
 	}
 
-	*tmp = *f
-	r := tmp.PowVarTime([4]uint64{0x7fff2dff80000000, 0x04d0ec02a9ded201, 0x94cebea4199cec04, 0x0000000039f6d3a9})
+	r := f.PowVarTime([4]uint64{0x7fff2dff80000000, 0x04d0ec02a9ded201, 0x94cebea4199cec04, 0x0000000039f6d3a9})
 
-	*tmp = *f
-	t := tmp.PowVarTime([4]uint64{0xfffe5bfeffffffff, 0x09a1d80553bda402, 0x299d7d483339d808, 0x0000000073eda753})
+	t := f.PowVarTime([4]uint64{0xfffe5bfeffffffff, 0x09a1d80553bda402, 0x299d7d483339d808, 0x0000000073eda753})
 
 	c := &ROOTOFUNITY
 	m := S
 
 	for !t.Equal(one) {
 
-		var i = uint32(1)
+		var i = 1
 
 		t2i := &Fq{0, 0, 0, 0}
 		t2i = t.Square()
@@ -199,7 +234,7 @@ func (f *Fq) SqrtVarTime() *Fq {
 			i++
 		}
 
-		for k := uint32(0); k < m-i-1; k++ {
+		for k := 0; k < m-i-1; k++ {
 			c = c.Square()
 		}
 
@@ -215,13 +250,12 @@ func (f *Fq) SqrtVarTime() *Fq {
 func (f *Fq) LegendreSymbolVarTime() *Fq {
 	// Legendre symbol computed via Euler's criterion:
 	// self^((q - 1) // 2)
-	f.PowVarTime([4]uint64{
+	return f.PowVarTime([4]uint64{
 		0x7fffffff80000000,
 		0xa9ded2017fff2dff,
 		0x199cec0404d0ec02,
 		0x39f6d3a994cebea4,
 	})
-	return f
 }
 
 func (f *Fq) PowVarTime(b [4]uint64) *Fq {
@@ -241,8 +275,7 @@ func (f *Fq) PowVarTime(b [4]uint64) *Fq {
 		}
 
 	}
-	*f = *res
-	return f
+	return res
 }
 
 // Inverse inverts a field element
@@ -366,10 +399,11 @@ func One() *Fq {
 }
 
 // BytesInto  converts f into a little endian byte slice
-func (f *Fq) BytesInto(buf *[32]byte) *Fq {
+func (f *Fq) Bytes() []byte {
 	// Turn into canonical form by computing (a.R) / R = a
 	tmp := *montRed(f[0], f[1], f[2], f[3], 0, 0, 0, 0)
 
+	var buf [32]byte
 	buf[0] = uint8(tmp[0])
 	buf[1] = uint8(tmp[0] >> 8)
 	buf[2] = uint8(tmp[0] >> 16)
@@ -402,6 +436,20 @@ func (f *Fq) BytesInto(buf *[32]byte) *Fq {
 	buf[29] = uint8(tmp[3] >> 40)
 	buf[30] = uint8(tmp[3] >> 48)
 	buf[31] = uint8(tmp[3] >> 56)
+	return buf[:]
+}
+
+func ConditionalSelect(a, b *Fq, choice bool) *Fq {
+	tmp := a
+	if choice {
+		tmp = b
+	}
+
+	f := &Fq{0, 0, 0, 0}
+	f[0] = tmp[0]
+	f[1] = tmp[1]
+	f[2] = tmp[2]
+	f[3] = tmp[3]
 	return f
 }
 
@@ -414,8 +462,7 @@ func (f *Fq) SetBytes(b *[32]byte) *Fq {
 }
 
 func (f *Fq) String() string {
-	var s [32]byte
-	f.BytesInto(&s)
+	s := f.Bytes()
 
 	// reverse bytes
 	for i, j := 0, len(s)-1; i <= j; i, j = i+1, j-1 {
@@ -457,6 +504,4 @@ func montRed(r0, r1, r2, r3, r4, r5, r6, r7 uint64) *Fq {
 	f := &Fq{r4, r5, r6, r7}
 
 	return f.Sub(&q)
-
-	return f
 }

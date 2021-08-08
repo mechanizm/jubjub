@@ -8,7 +8,7 @@ var zero = Fq{0, 0, 0, 0}
 // INV = -(q^{-1} mod 2^64) mod 2^64
 const INV uint64 = 0xfffffffeffffffff
 
-const S uint32 = 32
+const S int = 32
 
 // R = 2^256 mod q
 var R = Fq{0x00000001fffffffe, 0x5884b7fa00034802, 0x998c4fefecbc4ff5, 0x1824b159acc5056f}
