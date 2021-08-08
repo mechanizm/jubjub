@@ -31,6 +31,6 @@ func FromBytesInner(byt []byte) (*AffinePoint, error) {
 	v := fq.FromBytes()
 	v2 := v.Square()
 
-	v2.Sub()
 	t1 := v2.Sub(fq.One())
+	t2 := D.Mul(v2)
 }

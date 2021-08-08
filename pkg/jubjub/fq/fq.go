@@ -19,9 +19,7 @@ func FromBytes(byt []byte) *Fq {
 	d[3] = binary.LittleEndian.Uint64(byt[24:32])
 
 	// Convert to Montgomery form
-	d.Mul(d, &R2)
-
-	return d
+	return d.Mul(&R2)
 }
 
 // Sub Subtracts one field from another
@@ -89,7 +87,7 @@ func (lhs *Fq) Add(rhs *Fq) *Fq {
 	return f.Sub(&q)
 }
 
-func (f *Fq) Mul(lhs, rhs *Fq) *Fq {
+func (lhs *Fq) Mul(rhs *Fq) *Fq {
 	// TODO: Optimise later
 	r0, carry := futil.Mac(0, lhs[0], rhs[0], 0)
 	r1, carry := futil.Mac(0, lhs[0], rhs[1], carry)
@@ -111,9 +109,7 @@ func (f *Fq) Mul(lhs, rhs *Fq) *Fq {
 	r5, carry = futil.Mac(r5, lhs[3], rhs[2], carry)
 	r6, r7 := futil.Mac(r6, lhs[3], rhs[3], carry)
 
-	*f = *montRed(r0, r1, r2, r3, r4, r5, r6, r7)
-
-	return f
+	return montRed(r0, r1, r2, r3, r4, r5, r6, r7)
 }
 
 // Double doubles f by adding it to itself
@@ -126,7 +122,7 @@ func (a *Fq) Equal(b *Fq) bool {
 	return a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3]
 }
 
-func (f *Fq) Square(a *Fq) *Fq {
+func (a *Fq) Square() *Fq {
 	r1, carry := futil.Mac(0, a[0], a[1], 0)
 	r2, carry := futil.Mac(0, a[0], a[2], carry)
 	r3, r4 := futil.Mac(0, a[0], a[3], carry)
@@ -155,6 +151,8 @@ func (f *Fq) Square(a *Fq) *Fq {
 	r7, _ = futil.Adc(0, r7, carry)
 
 	red := montRed(r0, r1, r2, r3, r4, r5, r6, r7)
+
+	f := &Fq{0, 0, 0, 0}
 	f[0] = red[0]
 	f[1] = red[1]
 	f[2] = red[2]
@@ -181,12 +179,12 @@ func (f *Fq) SqrtVarTime() *Fq {
 	}
 
 	*tmp = *f
-	r := *tmp.PowVarTime([4]uint64{0x7fff2dff80000000, 0x04d0ec02a9ded201, 0x94cebea4199cec04, 0x0000000039f6d3a9})
+	r := tmp.PowVarTime([4]uint64{0x7fff2dff80000000, 0x04d0ec02a9ded201, 0x94cebea4199cec04, 0x0000000039f6d3a9})
 
 	*tmp = *f
-	t := *tmp.PowVarTime([4]uint64{0xfffe5bfeffffffff, 0x09a1d80553bda402, 0x299d7d483339d808, 0x0000000073eda753})
+	t := tmp.PowVarTime([4]uint64{0xfffe5bfeffffffff, 0x09a1d80553bda402, 0x299d7d483339d808, 0x0000000073eda753})
 
-	c := ROOTOFUNITY
+	c := &ROOTOFUNITY
 	m := S
 
 	for !t.Equal(one) {
@@ -194,27 +192,24 @@ func (f *Fq) SqrtVarTime() *Fq {
 		var i = uint32(1)
 
 		t2i := &Fq{0, 0, 0, 0}
-		t2i.Square(&t)
+		t2i = t.Square()
 
 		for !t2i.Equal(one) {
-			t2i.Square(t2i)
+			t2i = t2i.Square()
 			i++
 		}
 
 		for k := uint32(0); k < m-i-1; k++ {
-			c.Square(&c)
+			c = c.Square()
 		}
 
-		r.Mul(&r, &c)
-		c.Square(&c)
-		t.Mul(&t, &c)
+		r = r.Mul(c)
+		c = c.Square()
+		t = t.Mul(c)
 		m = i
-
 	}
 
-	*f = r
-
-	return f
+	return r
 }
 
 func (f *Fq) LegendreSymbolVarTime() *Fq {
@@ -237,10 +232,10 @@ func (f *Fq) PowVarTime(b [4]uint64) *Fq {
 		e := b[len(b)-1-j] // reversed
 		for i := 63; i >= 0; i-- {
 
-			res.Square(res)
+			res = res.Square()
 
 			if ((e >> uint64(i)) & 1) == 1 {
-				res.Mul(res, f)
+				res = res.Mul(f)
 			}
 
 		}
@@ -252,110 +247,103 @@ func (f *Fq) PowVarTime(b [4]uint64) *Fq {
 
 // Inverse inverts a field element
 // If element is zero, it will return nil
-func (f *Fq) Inverse(a *Fq) *Fq {
-
-	zero := Zero()
-
-	// Check if f is non-zero
-	if f.Equal(zero) {
-		return nil
-	}
-
+func (a *Fq) Inverse() *Fq {
 	var sqrMulti = func(e *Fq, n uint64) {
 		for i := uint64(0); i < n; i++ {
-			e.Square(e)
+			e = e.Square()
 		}
 	}
 
-	var t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17 Fq
+	var t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17 *Fq
 
-	t10 = *a
-	t0.Square(&t10)
-	t1.Mul(&t0, &t10)
-	t16.Square(&t0)
-	t6.Square(&t16)
-	t5.Mul(&t6, &t0)
-	t0.Mul(&t6, &t16)
-	t12.Mul(&t5, &t16)
-	t2.Square(&t6)
-	t7.Mul(&t5, &t6)
-	t15.Mul(&t0, &t5)
-	t17.Square(&t12)
-	t1.Mul(&t1, &t17)
-	t3.Mul(&t7, &t2)
-	t8.Mul(&t1, &t17)
-	t4.Mul(&t8, &t2)
-	t9.Mul(&t8, &t7)
-	t7.Mul(&t4, &t5)
-	t11.Mul(&t4, &t17)
-	t5.Mul(&t9, &t17)
-	t14.Mul(&t7, &t15)
-	t13.Mul(&t11, &t12)
-	t12.Mul(&t11, &t17)
-	t15.Mul(&t15, &t12)
-	t16.Mul(&t16, &t15)
-	t3.Mul(&t3, &t16)
-	t17.Mul(&t17, &t3)
-	t0.Mul(&t0, &t17)
-	t6.Mul(&t6, &t0)
-	t2.Mul(&t2, &t6)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t17)
-	sqrMulti(&t0, 9)
-	t0.Mul(&t0, &t16)
-	sqrMulti(&t0, 9)
-	t0.Mul(&t0, &t15)
-	sqrMulti(&t0, 9)
-	t0.Mul(&t0, &t15)
-	sqrMulti(&t0, 7)
-	t0.Mul(&t0, &t14)
-	sqrMulti(&t0, 7)
-	t0.Mul(&t0, &t13)
-	sqrMulti(&t0, 10)
-	t0.Mul(&t0, &t12)
-	sqrMulti(&t0, 9)
-	t0.Mul(&t0, &t11)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t8)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t10)
-	sqrMulti(&t0, 14)
-	t0.Mul(&t0, &t9)
-	sqrMulti(&t0, 10)
-	t0.Mul(&t0, &t8)
-	sqrMulti(&t0, 15)
-	t0.Mul(&t0, &t7)
-	sqrMulti(&t0, 10)
-	t0.Mul(&t0, &t6)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t5)
-	sqrMulti(&t0, 16)
-	t0.Mul(&t0, &t3)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t2)
-	sqrMulti(&t0, 7)
-	t0.Mul(&t0, &t4)
-	sqrMulti(&t0, 9)
-	t0.Mul(&t0, &t2)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t3)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t2)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t2)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t2)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t3)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t2)
-	sqrMulti(&t0, 8)
-	t0.Mul(&t0, &t2)
-	sqrMulti(&t0, 5)
-	t0.Mul(&t0, &t1)
-	sqrMulti(&t0, 5)
-	t0.Mul(&t0, &t1)
+	t10 = a
+	t0 = t10.Square()
+	t1 = t0.Mul(t10)
+	t16 = t0.Square()
+	t6 = t16.Square()
+	t5 = t6.Mul(t0)
+	t0 = t6.Mul(t16)
+	t12 = t5.Mul(t16)
+	t2 = t6.Square()
+	t7 = t5.Mul(t6)
+	t15 = t0.Mul(t5)
+	t17 = t12.Square()
+	t1 = t1.Mul(t17)
+	t3 = t7.Mul(t2)
+	t8 = t1.Mul(t17)
+	t4 = t8.Mul(t2)
+	t9 = t8.Mul(t7)
+	t7 = t4.Mul(t5)
+	t11 = t4.Mul(t17)
+	t5 = t9.Mul(t17)
+	t14 = t7.Mul(t15)
+	t13 = t11.Mul(t12)
+	t12 = t11.Mul(t17)
+	t15 = t15.Mul(t12)
+	t16 = t16.Mul(t15)
+	t3 = t3.Mul(t16)
+	t17 = t17.Mul(t3)
+	t0 = t0.Mul(t17)
+	t6 = t6.Mul(t0)
+	t2 = t2.Mul(t6)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t17)
+	sqrMulti(t0, 9)
+	t0 = t0.Mul(t16)
+	sqrMulti(t0, 9)
+	t0 = t0.Mul(t15)
+	sqrMulti(t0, 9)
+	t0 = t0.Mul(t15)
+	sqrMulti(t0, 7)
+	t0 = t0.Mul(t14)
+	sqrMulti(t0, 7)
+	t0 = t0.Mul(t13)
+	sqrMulti(t0, 10)
+	t0 = t0.Mul(t12)
+	sqrMulti(t0, 9)
+	t0 = t0.Mul(t11)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t8)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t10)
+	sqrMulti(t0, 14)
+	t0 = t0.Mul(t9)
+	sqrMulti(t0, 10)
+	t0 = t0.Mul(t8)
+	sqrMulti(t0, 15)
+	t0 = t0.Mul(t7)
+	sqrMulti(t0, 10)
+	t0 = t0.Mul(t6)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t5)
+	sqrMulti(t0, 16)
+	t0 = t0.Mul(t3)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t2)
+	sqrMulti(t0, 7)
+	t0 = t0.Mul(t4)
+	sqrMulti(t0, 9)
+	t0 = t0.Mul(t2)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t3)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t2)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t2)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t2)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t3)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t2)
+	sqrMulti(t0, 8)
+	t0 = t0.Mul(t2)
+	sqrMulti(t0, 5)
+	t0 = t0.Mul(t1)
+	sqrMulti(t0, 5)
+	t0 = t0.Mul(t1)
 
+	f := &Fq{0, 0, 0, 0}
 	f[0] = t0[0]
 	f[1] = t0[1]
 	f[2] = t0[2]
