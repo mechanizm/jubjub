@@ -2,6 +2,7 @@ package point
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/jadeydi/jubjub/pkg/jubjub/fq"
 )
@@ -33,13 +34,13 @@ func FromBytesInner(byt []byte) (*AffinePoint, error) {
 
 	t1 := v2.Sub(fq.One())
 	t2 := fq.One().Add(fq.D.Mul(v2))
-	u := t1.Mul(t2).Inverse().Sqrt()
+	u := (t1.Mul(t2.Inverse())).Sqrt()
+	log.Println("v.square sqrt :::", (t1.Mul(t2.Inverse())), u)
+
 	flip := (u[0] ^ uint64(sign)) & 1
 	negated := u.Neg()
-	final := u
-	if flip == 0 {
-		final = negated
-	}
+	final := fq.ConditionalSelect(u, negated, int(flip))
+	log.Println(u.String(), negated.String(), v.String())
 	return &AffinePoint{
 		u: final,
 		v: v,

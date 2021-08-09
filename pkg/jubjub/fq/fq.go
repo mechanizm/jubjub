@@ -162,7 +162,7 @@ func (a *Fq) Square() *Fq {
 }
 
 func (f *Fq) Sqrt() *Fq {
-	w := f.PowVarTime([4]uint64{0x7fff2dff80000000, 0x04d0ec02a9ded201, 0x94cebea4199cec04, 0x0000000039f6d3a9})
+	w := f.PowVarTime([4]uint64{0x7fff2dff7fffffff, 0x04d0ec02a9ded201, 0x94cebea4199cec04, 0x0000000039f6d3a9})
 
 	v := S
 	x := f.Mul(w)
@@ -170,30 +170,41 @@ func (f *Fq) Sqrt() *Fq {
 
 	z := &ROOTOFUNITY
 
-	for i := S; i > 0; i++ {
+	for i := S; i > 0; i-- {
 		k := 1
 		tmp := b.Square()
 		j_less_than_v := 1
+
 		for j := 2; j < i; j++ {
-			tmp_is_one := tmp.Equal(One())
+			tmp_is_one := 0
+			if tmp.Equal(One()) {
+				tmp_is_one = 1
+			}
 			squared := ConditionalSelect(tmp, z, tmp_is_one).Square()
 			tmp = ConditionalSelect(squared, tmp, tmp_is_one)
 			new_z := ConditionalSelect(z, squared, tmp_is_one)
-			thanv := 1
+			jv := 0
 			if j == v {
-				thanv = 0
+				jv = 1
 			}
-			j_less_than_v &= thanv
-			if tmp_is_one {
+			// invert
+			var jvi int
+			if jv == 0 {
+				jvi = 1
+			}
+			j_less_than_v &= jvi
+			if tmp_is_one == 0 {
 				k = j
-				z = new_z
 			}
+			z = ConditionalSelect(z, new_z, j_less_than_v)
 		}
 
-		result := x.Mul(z)
+		bchoice := 0
 		if b.Equal(One()) {
-			b = result
+			bchoice = 1
 		}
+		result := x.Mul(z)
+		x = ConditionalSelect(result, x, bchoice)
 		z = z.Square()
 		b = b.Mul(z)
 		v = k
@@ -262,18 +273,14 @@ func (f *Fq) PowVarTime(b [4]uint64) *Fq {
 	res := One()
 
 	for j := range b {
-
 		e := b[len(b)-1-j] // reversed
 		for i := 63; i >= 0; i-- {
-
 			res = res.Square()
 
 			if ((e >> uint64(i)) & 1) == 1 {
 				res = res.Mul(f)
 			}
-
 		}
-
 	}
 	return res
 }
@@ -281,17 +288,17 @@ func (f *Fq) PowVarTime(b [4]uint64) *Fq {
 // Inverse inverts a field element
 // If element is zero, it will return nil
 func (a *Fq) Inverse() *Fq {
-	var sqrMulti = func(e *Fq, n uint64) {
-		for i := uint64(0); i < n; i++ {
+	var sqrMulti = func(e *Fq, n int) *Fq {
+		for i := 0; i < n; i++ {
 			e = e.Square()
 		}
+		return e
 	}
 
-	var t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17 *Fq
+	var t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t11, t12, t13, t14, t15, t16, t17 *Fq
 
-	t10 = a
-	t0 = t10.Square()
-	t1 = t0.Mul(t10)
+	t0 = a.Square()
+	t1 = t0.Mul(a)
 	t16 = t0.Square()
 	t6 = t16.Square()
 	t5 = t6.Mul(t0)
@@ -319,61 +326,61 @@ func (a *Fq) Inverse() *Fq {
 	t0 = t0.Mul(t17)
 	t6 = t6.Mul(t0)
 	t2 = t2.Mul(t6)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t17)
-	sqrMulti(t0, 9)
+	t0 = sqrMulti(t0, 9)
 	t0 = t0.Mul(t16)
-	sqrMulti(t0, 9)
+	t0 = sqrMulti(t0, 9)
 	t0 = t0.Mul(t15)
-	sqrMulti(t0, 9)
+	t0 = sqrMulti(t0, 9)
 	t0 = t0.Mul(t15)
-	sqrMulti(t0, 7)
+	t0 = sqrMulti(t0, 7)
 	t0 = t0.Mul(t14)
-	sqrMulti(t0, 7)
+	t0 = sqrMulti(t0, 7)
 	t0 = t0.Mul(t13)
-	sqrMulti(t0, 10)
+	t0 = sqrMulti(t0, 10)
 	t0 = t0.Mul(t12)
-	sqrMulti(t0, 9)
+	t0 = sqrMulti(t0, 9)
 	t0 = t0.Mul(t11)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t8)
-	sqrMulti(t0, 8)
-	t0 = t0.Mul(t10)
-	sqrMulti(t0, 14)
+	t0 = sqrMulti(t0, 8)
+	t0 = t0.Mul(a)
+	t0 = sqrMulti(t0, 14)
 	t0 = t0.Mul(t9)
-	sqrMulti(t0, 10)
+	t0 = sqrMulti(t0, 10)
 	t0 = t0.Mul(t8)
-	sqrMulti(t0, 15)
+	t0 = sqrMulti(t0, 15)
 	t0 = t0.Mul(t7)
-	sqrMulti(t0, 10)
+	t0 = sqrMulti(t0, 10)
 	t0 = t0.Mul(t6)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t5)
-	sqrMulti(t0, 16)
+	t0 = sqrMulti(t0, 16)
 	t0 = t0.Mul(t3)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t2)
-	sqrMulti(t0, 7)
+	t0 = sqrMulti(t0, 7)
 	t0 = t0.Mul(t4)
-	sqrMulti(t0, 9)
+	t0 = sqrMulti(t0, 9)
 	t0 = t0.Mul(t2)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t3)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t2)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t2)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t2)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t3)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t2)
-	sqrMulti(t0, 8)
+	t0 = sqrMulti(t0, 8)
 	t0 = t0.Mul(t2)
-	sqrMulti(t0, 5)
+	t0 = sqrMulti(t0, 5)
 	t0 = t0.Mul(t1)
-	sqrMulti(t0, 5)
+	t0 = sqrMulti(t0, 5)
 	t0 = t0.Mul(t1)
 
 	f := &Fq{0, 0, 0, 0}
@@ -439,9 +446,9 @@ func (f *Fq) Bytes() []byte {
 	return buf[:]
 }
 
-func ConditionalSelect(a, b *Fq, choice bool) *Fq {
+func ConditionalSelect(a, b *Fq, choice int) *Fq {
 	tmp := a
-	if choice {
+	if choice == 1 {
 		tmp = b
 	}
 
