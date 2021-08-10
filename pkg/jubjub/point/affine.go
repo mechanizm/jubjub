@@ -22,10 +22,7 @@ func (af *AffinePoint) Neg() *AffinePoint {
 }
 
 // from_bytes_inner from_bytes
-func AffineFromBytesInner(byt []byte) (*AffinePoint, error) {
-	if len(byt) != 32 {
-		return nil, fmt.Errorf("invalid bytes %x", byt)
-	}
+func AffineFromBytesInner(byt []byte) *AffinePoint {
 	sign := byt[31] >> 7
 	byt[31] &= 0b0111_1111
 
@@ -42,7 +39,7 @@ func AffineFromBytesInner(byt []byte) (*AffinePoint, error) {
 	return &AffinePoint{
 		u: final,
 		v: v,
-	}, nil
+	}
 }
 
 func (a *AffinePoint) Extended() *ExtendedPoint {

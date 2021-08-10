@@ -10,21 +10,15 @@ type ExtendedPoint struct {
 	u, v, z, t1, t2 *fq.Fq
 }
 
-func ExtendedFromBytes(byt []byte) (*ExtendedPoint, error) {
-	if len(byt) != 32 {
-		return nil, fmt.Errorf("invalid bytes %x", byt)
-	}
-	affine, err := AffineFromBytesInner(byt)
-	if err != nil {
-		return nil, err
-	}
+func ExtendedFromBytes(byt []byte) *ExtendedPoint {
+	affine := AffineFromBytesInner(byt)
 	return &ExtendedPoint{
 		u:  affine.u,
 		v:  affine.v,
 		z:  fq.One(),
 		t1: affine.u,
 		t2: affine.v,
-	}, nil
+	}
 }
 
 // mul_by_cofactor
