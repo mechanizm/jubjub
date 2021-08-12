@@ -99,11 +99,16 @@ func New256(key []byte) (hash.Hash, error) { return newDigest(Size256, key, nil)
 // - 16 if BLAKE2b is used as a MAC function (The key is at least 16 bytes long).
 // When the key is nil, the returned hash.Hash implements BinaryMarshaler
 // and BinaryUnmarshaler for state (de)serialization as documented by hash.Hash.
-func New(size int, key []byte) (hash.Hash, error) { return newDigest(size, key) }
+func New(size int, key, nil []byte) (hash.Hash, error) { return newDigest(size, key, nil) }
 
 func newDigest(hashSize int, key, personalization []byte) (*digest, error) {
 	if hashSize < 1 || hashSize > Size {
 		return nil, errHashSize
+	}
+	if personalization != nil && len(personalization) < 16 {
+		for i := len(personalization); i < 16; i++ {
+			personalization = append(personalization, byte(0))
+		}
 	}
 	if len(key) > Size {
 		return nil, errKeySize
@@ -210,12 +215,10 @@ func (d *digest) Size() int { return d.size }
 
 func (d *digest) Reset() {
 	d.h = iv
-	d.h[0] ^= uint64(d.size) | (uint64(d.keyLen) << 8) | (1 << 16) | (1 << 24)
+	d.h[0] ^= uint64(d.size) | (uint64(d.keyLen) << 8) | (1 << 16) | (1 << 24) | (0 << 32)
 	if d.personalization != nil {
-		for i := 0; i < 8; i++ {
-			b := uint64(d.personalization[i]) << (8 * uint(i%4))
-			d.h[6+i/4] ^= b
-		}
+		d.h[6] ^= binary.LittleEndian.Uint64(d.personalization[:8])
+		d.h[7] ^= binary.LittleEndian.Uint64(d.personalization[8:])
 	}
 	d.offset, d.c[0], d.c[1] = 0, 0, 0
 	if d.keyLen > 0 {
