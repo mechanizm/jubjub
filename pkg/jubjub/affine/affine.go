@@ -1,8 +1,7 @@
-package point
+package affine
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/jadeydi/jubjub/pkg/jubjub/fq"
 )
@@ -11,18 +10,18 @@ import (
 /// curve `-u^2 + v^2 = 1 + d.u^2.v^2` over `Fq` with
 /// `d = -(10240/10241)`
 type AffinePoint struct {
-	u, v *fq.Fq
+	U, V *fq.Fq
 }
 
 // Neg negates the u value in (u,v)
 // returning point (-u, v)
 func (af *AffinePoint) Neg() *AffinePoint {
-	af.u = af.u.Neg()
+	af.U = af.U.Neg()
 	return af
 }
 
 // from_bytes_inner from_bytes
-func AffineFromBytesInner(byt []byte) *AffinePoint {
+func FromBytesInner(byt []byte) *AffinePoint {
 	sign := byt[31] >> 7
 	byt[31] &= 0b0111_1111
 
@@ -37,28 +36,23 @@ func AffineFromBytesInner(byt []byte) *AffinePoint {
 	negated := u.Neg()
 	final := fq.ConditionalSelect(u, negated, int(flip))
 	return &AffinePoint{
-		u: final,
-		v: v,
+		U: final,
+		V: v,
 	}
 }
 
-func (a *AffinePoint) Extended() *ExtendedPoint {
-	return &ExtendedPoint{
-		u:  a.u,
-		v:  a.v,
-		z:  fq.One(),
-		t1: a.u,
-		t2: a.v,
+func FromRawUnchecked(u, v *fq.Fq) *AffinePoint {
+	return &AffinePoint{
+		U: u,
+		V: v,
 	}
 }
 
 // IntoBytes converts the af element into its little-endian
 // byte representation
 func (a *AffinePoint) Bytes() []byte {
-
-	tmp := a.v.Bytes()
-	u := a.u.Bytes()
-	log.Println(tmp, "u", u)
+	tmp := a.V.Bytes()
+	u := a.U.Bytes()
 
 	// Encode the sign of the u-coordinate in the most
 	// significant bit.
@@ -68,5 +62,5 @@ func (a *AffinePoint) Bytes() []byte {
 }
 
 func (e *AffinePoint) String() string {
-	return fmt.Sprintf("u: %s, v: %s", e.u.String(), e.v.String())
+	return fmt.Sprintf("u: %s, v: %s", e.U.String(), e.V.String())
 }

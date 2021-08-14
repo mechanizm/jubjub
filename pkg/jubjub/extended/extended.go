@@ -1,8 +1,9 @@
-package point
+package extended
 
 import (
 	"fmt"
 
+	"github.com/jadeydi/jubjub/pkg/jubjub/affine"
 	"github.com/jadeydi/jubjub/pkg/jubjub/fq"
 )
 
@@ -10,14 +11,14 @@ type ExtendedPoint struct {
 	u, v, z, t1, t2 *fq.Fq
 }
 
-func ExtendedFromBytes(byt []byte) *ExtendedPoint {
-	affine := AffineFromBytesInner(byt)
+func FromBytes(byt []byte) *ExtendedPoint {
+	a := affine.FromBytesInner(byt)
 	return &ExtendedPoint{
-		u:  affine.u,
-		v:  affine.v,
+		u:  a.U,
+		v:  a.V,
 		z:  fq.One(),
-		t1: affine.u,
-		t2: affine.v,
+		t1: a.U,
+		t2: a.V,
 	}
 }
 
@@ -70,6 +71,28 @@ func IdentityExtendedPoint() *ExtendedPoint {
 		z:  fq.One(),
 		t1: fq.One(),
 		t2: fq.One(),
+	}
+}
+
+func (e *ExtendedPoint) Bytes() []byte {
+	return ToAffine(e).Bytes()
+}
+
+func ToAffine(e *ExtendedPoint) *affine.AffinePoint {
+	zinv := e.z.Inverse()
+	return &affine.AffinePoint{
+		U: e.u.Mul(zinv),
+		V: e.v.Mul(zinv),
+	}
+}
+
+func FromAffine(a *affine.AffinePoint) *ExtendedPoint {
+	return &ExtendedPoint{
+		u:  a.U,
+		v:  a.V,
+		z:  fq.One(),
+		t1: a.U,
+		t2: a.V,
 	}
 }
 
