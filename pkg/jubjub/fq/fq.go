@@ -22,6 +22,10 @@ func FromBytes(byt []byte) *Fq {
 	return d.Mul(&R2)
 }
 
+func FromRaw(f *Fq) *Fq {
+	return f.Mul(&R2)
+}
+
 // Sub Subtracts one field from another
 func (a *Fq) Sub(b *Fq) *Fq {
 	var borrow, carry uint64

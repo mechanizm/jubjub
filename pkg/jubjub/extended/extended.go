@@ -22,6 +22,18 @@ func FromBytes(byt []byte) *ExtendedPoint {
 	}
 }
 
+func FromRawUnchecked(u, v *fq.Fq) *ExtendedPoint {
+	return FromAffine(affine.FromRawUnchecked(u, v))
+}
+
+func (lhs *ExtendedPoint) Add(rhs *ExtendedPoint) *ExtendedPoint {
+	return lhs.AddExtendedNiels(rhs.ToNiels())
+}
+
+func (e *ExtendedPoint) Mul(buf []byte) *ExtendedPoint {
+	return e.ToNiels().Mul(buf)
+}
+
 // mul_by_cofactor
 func (e *ExtendedPoint) MulByCofactor() *ExtendedPoint {
 	e = e.Double().Double().Double()
@@ -64,7 +76,7 @@ func (e *ExtendedPoint) AddExtendedNiels(other *ExtendedNielsPoint) *ExtendedPoi
 	return point.Extended()
 }
 
-func IdentityExtendedPoint() *ExtendedPoint {
+func Identity() *ExtendedPoint {
 	return &ExtendedPoint{
 		u:  fq.One(),
 		v:  fq.One(),
@@ -75,10 +87,10 @@ func IdentityExtendedPoint() *ExtendedPoint {
 }
 
 func (e *ExtendedPoint) Bytes() []byte {
-	return ToAffine(e).Bytes()
+	return e.ToAffine().Bytes()
 }
 
-func ToAffine(e *ExtendedPoint) *affine.AffinePoint {
+func (e *ExtendedPoint) ToAffine() *affine.AffinePoint {
 	zinv := e.z.Inverse()
 	return &affine.AffinePoint{
 		U: e.u.Mul(zinv),
@@ -120,7 +132,7 @@ func IdentityExtendedNielsPoint() *ExtendedNielsPoint {
 
 func (niel *ExtendedNielsPoint) Mul(buf []byte) *ExtendedPoint {
 	zero := IdentityExtendedNielsPoint()
-	acc := IdentityExtendedPoint()
+	acc := Identity()
 
 	var bytes []int
 	for i := len(buf) - 1; i >= 0; i-- {

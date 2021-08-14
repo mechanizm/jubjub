@@ -42,6 +42,14 @@ func FromBytesWide(byt []byte) *Fr {
 	return d0.Add(d1)
 }
 
+func Zero() *Fr {
+	return &Fr{0, 0, 0, 0}
+}
+
+func One() *Fr {
+	return &R
+}
+
 func (lhs *Fr) Add(rhs *Fr) *Fr {
 
 	d0, carry := futil.Adc(lhs[0], rhs[0], 0)
@@ -79,6 +87,26 @@ func (lhs *Fr) Sub(rhs *Fr) *Fr {
 	f[3] = d3
 
 	return f
+}
+
+func (f *Fr) Neg() *Fr {
+	d0, borrow := futil.Sbb(MODULUS[0], f[0], 0)
+	d1, borrow := futil.Sbb(MODULUS[1], f[1], borrow)
+	d2, borrow := futil.Sbb(MODULUS[2], f[2], borrow)
+	d3, _ := futil.Sbb(MODULUS[3], f[3], borrow)
+
+	msk := f[0]|f[1]|f[2]|f[3] == 0
+	var mask uint64
+	if !msk {
+		mask--
+	}
+
+	ff := &Fr{0, 0, 0, 0}
+	ff[0] = d0 & mask
+	ff[1] = d1 & mask
+	ff[2] = d2 & mask
+	ff[3] = d3 & mask
+	return ff
 }
 
 // Mul mutiplies two field elements together
@@ -145,6 +173,10 @@ func MontRed(r0, r1, r2, r3, r4, r5, r6, r7 uint64) *Fr {
 	f := &Fr{r4, r5, r6, r7}
 
 	return f.Sub(&r)
+}
+
+func (f *Fr) Double() *Fr {
+	return f.Add(f)
 }
 
 // IntoBytes  converts f into a little endian byte slice
