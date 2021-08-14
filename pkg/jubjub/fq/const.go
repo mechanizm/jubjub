@@ -27,3 +27,19 @@ var D = Fq{0x2a522455b974f6b0, 0xfc6cc9ef0d9acab3, 0x7a08fb94c27628d1, 0x57f8f6a
 
 // D2 = 2 * d
 var D2 = Fq{0x54a448ac72e9ed5f, 0xa51befdb1b373967, 0xc0d81f217b4a799e, 0x3c0445fed27ecf14}
+
+// `d = -(10240/10241)`
+var EDWARDS_D = Fq{
+	0x0106_5fd6_d634_3eb1,
+	0x292d_7f6d_3757_9d26,
+	0xf5fd_9207_e6bd_7fd4,
+	0x2a93_18e7_4bfa_2b48,
+}
+
+// `2*d`
+var EDWARDS_D2 = Fq{
+	0x020c_bfad_ac68_7d62,
+	0x525a_feda_6eaf_3a4c,
+	0xebfb_240f_cd7a_ffa8,
+	0x5526_31ce_97f4_5691,
+}

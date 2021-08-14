@@ -405,6 +405,12 @@ func One() *Fq {
 	return f
 }
 
+func Set(q *Fq) *Fq {
+	f := &Fq{1, 0, 0, 0}
+	copy(f[:], q[:])
+	return f
+}
+
 // BytesInto  converts f into a little endian byte slice
 func (f *Fq) Bytes() []byte {
 	// Turn into canonical form by computing (a.R) / R = a
