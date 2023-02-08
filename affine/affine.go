@@ -3,12 +3,12 @@ package affine
 import (
 	"fmt"
 
-	"github.com/jadeydi/jubjub/pkg/jubjub/fq"
+	"github.com/mechanizm/jubjub/fq"
 )
 
 // AffinePoint represents an affine point `(u, v)` on the
-/// curve `-u^2 + v^2 = 1 + d.u^2.v^2` over `Fq` with
-/// `d = -(10240/10241)`
+// / curve `-u^2 + v^2 = 1 + d.u^2.v^2` over `Fq` with
+// / `d = -(10240/10241)`
 type AffinePoint struct {
 	U, V *fq.Fq
 }

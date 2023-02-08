@@ -2,9 +2,9 @@ package windowedpedersencommit
 
 import (
 	"fmt"
-	"github.com/jadeydi/jubjub/pkg/grouphash"
-	"github.com/jadeydi/jubjub/pkg/jubjub"
-	"github.com/jadeydi/jubjub/pkg/pedersenhash"
+	"github.com/mechanizm/jubjub/grouphash"
+	"github.com/mechanizm/jubjub/jubjub"
+	"github.com/mechanizm/jubjub/pedersenhash"
 	"math/big"
 )
 

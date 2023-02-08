@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 
-	"github.com/jadeydi/jubjub/pkg/jubjub/futil"
+	"github.com/mechanizm/jubjub/futil"
 )
 
 type Fr [4]uint64
@@ -51,7 +51,6 @@ func One() *Fr {
 }
 
 func (lhs *Fr) Add(rhs *Fr) *Fr {
-
 	d0, carry := futil.Adc(lhs[0], rhs[0], 0)
 	d1, carry := futil.Adc(lhs[1], rhs[1], carry)
 	d2, carry := futil.Adc(lhs[2], rhs[2], carry)

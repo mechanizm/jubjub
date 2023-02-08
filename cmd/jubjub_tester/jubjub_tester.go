@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/jadeydi/jubjub/pkg/blake2s"
-	"github.com/jadeydi/jubjub/pkg/pedersenhash"
+	"github.com/mechanizm/jubjub/blake2s"
+	"github.com/mechanizm/jubjub/pedersenhash"
 )
 
 func main() {

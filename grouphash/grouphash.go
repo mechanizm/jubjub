@@ -4,17 +4,13 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/jadeydi/jubjub/pkg/blake2s"
-	"github.com/jadeydi/jubjub/pkg/jubjub"
+	"github.com/mechanizm/jubjub"
+	"github.com/mechanizm/jubjub/blake2s"
 )
 
-var (
-	ErrInvalidPoint = fmt.Errorf("invalid point")
-)
+var ErrInvalidPoint = fmt.Errorf("invalid point")
 
-var (
-	urs = []byte("096b36a5804bfacef1691e173c366a47ff5ba84a44f26ddd7e8d9f79d5b42df0")
-)
+var urs = []byte("096b36a5804bfacef1691e173c366a47ff5ba84a44f26ddd7e8d9f79d5b42df0")
 
 type GroupHasher struct {
 	curve *jubjub.Jubjub
@@ -70,7 +66,7 @@ func (hasher *GroupHasher) Hash(msg []byte) (*jubjub.JubjubPoint, error) {
 	y := big.NewInt(0)
 	y.SetBytes(blakeHashBytes)
 	highestBit := y.Bit(255)
-	//fmt.Printf("highest bit: %d\n", highestBit)
+	// fmt.Printf("highest bit: %d\n", highestBit)
 	y.SetBit(y, 255, 0)
 
 	p, err := hasher.curve.GetForY(y, highestBit == 1)

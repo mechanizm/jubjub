@@ -4,12 +4,12 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 
-	"github.com/jadeydi/jubjub/pkg/jubjub/futil"
+	"github.com/mechanizm/jubjub/futil"
 )
 
 type Fq [4]uint64
 
-//from_bytes
+// from_bytes
 func FromBytes(byt []byte) *Fq {
 	d := &Fq{0, 0, 0, 0}
 
@@ -239,7 +239,7 @@ func (f *Fq) SqrtVarTime() *Fq {
 
 	for !t.Equal(one) {
 
-		var i = 1
+		i := 1
 
 		t2i := &Fq{0, 0, 0, 0}
 		t2i = t.Square()
@@ -292,7 +292,7 @@ func (f *Fq) PowVarTime(b [4]uint64) *Fq {
 // Inverse inverts a field element
 // If element is zero, it will return nil
 func (a *Fq) Inverse() *Fq {
-	var sqrMulti = func(e *Fq, n int) *Fq {
+	sqrMulti := func(e *Fq, n int) *Fq {
 		for i := 0; i < n; i++ {
 			e = e.Square()
 		}

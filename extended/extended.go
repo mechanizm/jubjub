@@ -3,8 +3,8 @@ package extended
 import (
 	"fmt"
 
-	"github.com/jadeydi/jubjub/pkg/jubjub/affine"
-	"github.com/jadeydi/jubjub/pkg/jubjub/fq"
+	"github.com/mechanizm/jubjub/affine"
+	"github.com/mechanizm/jubjub/fq"
 )
 
 type ExtendedPoint struct {

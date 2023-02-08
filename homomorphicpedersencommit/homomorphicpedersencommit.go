@@ -1,19 +1,18 @@
 package homomorphicpedersencommit
 
 import (
-	"github.com/jadeydi/jubjub/pkg/grouphash"
-	"github.com/jadeydi/jubjub/pkg/jubjub"
-	"github.com/jadeydi/jubjub/pkg/pedersenhash"
 	"math/big"
+
+	"github.com/mechanizm/jubjub"
+	"github.com/mechanizm/jubjub/grouphash"
+	"github.com/mechanizm/jubjub/pedersenhash"
 )
 
-var (
-	domain = []byte("Zcash_PH")
-)
+var domain = []byte("Zcash_PH")
 
 type HomomorphicPedersenCommitter struct {
-	curve *jubjub.Jubjub
-	groupHasher *grouphash.GroupHasher
+	curve          *jubjub.Jubjub
+	groupHasher    *grouphash.GroupHasher
 	pedersenHasher *pedersenhash.PedersenHasher
 }
 
@@ -30,9 +29,9 @@ func NewCommitter() (*HomomorphicPedersenCommitter, error) {
 	}
 
 	return &HomomorphicPedersenCommitter{
-		curve:  j,
-		groupHasher: groupHasher,
-		pedersenHasher:pedersenHasher,
+		curve:          j,
+		groupHasher:    groupHasher,
+		pedersenHasher: pedersenHasher,
 	}, nil
 }
 

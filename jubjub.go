@@ -1,10 +1,9 @@
 package jubjub
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
-
-	"github.com/pkg/errors"
 )
 
 type Jubjub struct {
@@ -26,7 +25,6 @@ type JubjubPoint struct {
 }
 
 func NewJubjub() *Jubjub {
-
 	blsR := big.NewInt(0)
 	blsR.SetString("73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001", 16)
 
@@ -115,7 +113,7 @@ func (curve *Jubjub) GetForY(y *big.Int, shouldBeOdd bool) (*JubjubPoint, error)
 	if cmp := y.Cmp(curve.BlsR); cmp == 1 || cmp == 0 {
 		return nil, fmt.Errorf("not in field")
 	}
-	//fmt.Printf("cmp: %d\n", y.Cmp(curve.BlsR))
+	// fmt.Printf("cmp: %d\n", y.Cmp(curve.BlsR))
 	ySqr := big.NewInt(0)
 	ySqr.Set(y)
 	ySqr.Exp(ySqr, big.NewInt(2), curve.BlsR)
