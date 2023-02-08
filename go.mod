@@ -1,3 +1,3 @@
-module github.com/jadeydi/jubjub
+module github.com/mechanizm/jubjub
 
 go 1.16
