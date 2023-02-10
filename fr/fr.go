@@ -193,6 +193,17 @@ func (f *Fr) Bytes() []byte {
 	return res
 }
 
+func (f *Fr) BytesNotCanonical() []byte {
+	res := make([]byte, 32, 32)
+
+	binary.LittleEndian.PutUint64(res[0:8], f[0])
+	binary.LittleEndian.PutUint64(res[8:16], f[1])
+	binary.LittleEndian.PutUint64(res[16:24], f[2])
+	binary.LittleEndian.PutUint64(res[24:32], f[3])
+
+	return res
+}
+
 func (f *Fr) String() string {
 	s := f.Bytes()
 

@@ -34,6 +34,10 @@ func (e *ExtendedPoint) Mul(buf []byte) *ExtendedPoint {
 	return e.ToNiels().Mul(buf)
 }
 
+func (e *ExtendedPoint) V() *fq.Fq {
+	return e.v
+}
+
 // mul_by_cofactor
 func (e *ExtendedPoint) MulByCofactor() *ExtendedPoint {
 	e = e.Double().Double().Double()
@@ -84,6 +88,10 @@ func Identity() *ExtendedPoint {
 		t1: fq.One(),
 		t2: fq.One(),
 	}
+}
+
+func (e *ExtendedPoint) IsIdentity() bool {
+	return e.u.Equal(fq.Zero()) && e.v.Equal(e.z)
 }
 
 func (e *ExtendedPoint) Bytes() []byte {
@@ -141,8 +149,10 @@ func (niel *ExtendedNielsPoint) Mul(buf []byte) *ExtendedPoint {
 			bytes = append(bytes, int((byt>>j)&1))
 		}
 	}
+
 	for _, bit := range bytes[4:] {
 		acc = acc.Double()
+
 		acc = acc.AddExtendedNiels(ConditionalSelectExtendedNielsPoint(zero, niel, bit))
 	}
 	return acc
@@ -159,6 +169,10 @@ func ConditionalSelectExtendedNielsPoint(a, b *ExtendedNielsPoint, choice int) *
 
 func (e *ExtendedPoint) String() string {
 	return fmt.Sprintf("u: %s, v: %s, z: %s, t1: %s, t2: %s", e.u.String(), e.v.String(), e.z.String(), e.t1.String(), e.t2.String())
+}
+
+func (e *ExtendedPoint) StringNotCanonical() string {
+	return fmt.Sprintf("u: %v, v: %v, z: %v, t1: %v, t2: %v", e.u, e.v, e.z, e.t1, e.t2)
 }
 
 type CompletedPoint struct {

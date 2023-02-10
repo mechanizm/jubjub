@@ -415,6 +415,17 @@ func Set(q *Fq) *Fq {
 	return f
 }
 
+func (f *Fq) BytesNotCanonical() []byte {
+	res := make([]byte, 32, 32)
+
+	binary.LittleEndian.PutUint64(res[0:8], f[0])
+	binary.LittleEndian.PutUint64(res[8:16], f[1])
+	binary.LittleEndian.PutUint64(res[16:24], f[2])
+	binary.LittleEndian.PutUint64(res[24:32], f[3])
+
+	return res
+}
+
 // BytesInto  converts f into a little endian byte slice
 func (f *Fq) Bytes() []byte {
 	// Turn into canonical form by computing (a.R) / R = a
